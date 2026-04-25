@@ -9,6 +9,9 @@ const CATALOG_ITEMS = [
     price: "12 400 ₽",
     sizes: ["XS", "S", "M", "L"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg", label: "Спереди" },
+    ],
     tag: "Хит",
     tagColor: "from-purple-500 to-pink-500",
   },
@@ -19,6 +22,9 @@ const CATALOG_ITEMS = [
     price: "8 900 ₽",
     sizes: ["S", "M", "L", "XL"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg", label: "Спереди" },
+    ],
     tag: "Новинка",
     tagColor: "from-orange-500 to-pink-500",
   },
@@ -29,6 +35,9 @@ const CATALOG_ITEMS = [
     price: "6 200 ₽",
     sizes: ["XS", "S", "M"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg", label: "Спереди" },
+    ],
     tag: "−20%",
     tagColor: "from-pink-500 to-orange-500",
   },
@@ -38,7 +47,12 @@ const CATALOG_ITEMS = [
     category: "Повседневное",
     price: "14 900 ₽",
     sizes: ["XS", "S", "M", "L", "XL"],
-    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg",
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/972abfa5-dae1-4595-b676-918db4e8f2c4.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/972abfa5-dae1-4595-b676-918db4e8f2c4.jpg", label: "Спереди" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/7e3d2775-3c45-4c88-9b9a-f0d7d29438c1.jpg", label: "Сзади" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg", label: "На модели" },
+    ],
     tag: "Новинка",
     tagColor: "from-amber-600 to-stone-500",
   },
@@ -68,6 +82,8 @@ export default function Index() {
   const [waist, setWaist] = useState("");
   const [hips, setHips] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<typeof CATALOG_ITEMS[0] | null>(null);
+  const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0);
   // fit sliders: отклонение от базовых мерок изделия (M = 88/68/96)
   const [fitChest, setFitChest] = useState(88);
   const [fitWaist, setFitWaist] = useState(68);
@@ -248,13 +264,28 @@ export default function Index() {
                     <div className={`absolute top-3 left-3 bg-gradient-to-r ${item.tagColor} text-white text-xs font-display font-semibold px-3 py-1 rounded-full`}>
                       {item.tag}
                     </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setSelectedModel(item.id); setActiveSection("tryon"); }}
-                      className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-purple-600 transition-colors"
-                    >
-                      <Icon name="Shirt" size={12} />
-                      Примерить
-                    </button>
+                    <div className="absolute bottom-3 right-3 flex gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPreviewItem(item); setPreviewPhotoIdx(0); }}
+                        className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-white/20 transition-colors"
+                      >
+                        <Icon name="Eye" size={12} />
+                        Просмотр
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedModel(item.id); setActiveSection("tryon"); }}
+                        className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-purple-600 transition-colors"
+                      >
+                        <Icon name="Shirt" size={12} />
+                        Примерить
+                      </button>
+                    </div>
+                    {item.images.length > 1 && (
+                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                        <Icon name="Images" size={11} />
+                        {item.images.length}
+                      </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -707,6 +738,89 @@ export default function Index() {
         )}
 
       </main>
+
+      {/* MODAL — просмотр изделия */}
+      {previewItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          onClick={() => setPreviewItem(null)}
+        >
+          <div
+            className="glass-card rounded-3xl overflow-hidden w-full max-w-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Шапка */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
+              <div>
+                <p className="text-white/40 text-xs uppercase tracking-widest mb-0.5">{previewItem.category}</p>
+                <h3 className="font-display text-xl font-bold text-white">{previewItem.name}</h3>
+              </div>
+              <button
+                onClick={() => setPreviewItem(null)}
+                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+              >
+                <Icon name="X" size={20} className="text-white/60" />
+              </button>
+            </div>
+
+            {/* Фото */}
+            <div className="relative bg-black/30">
+              <img
+                src={previewItem.images[previewPhotoIdx].url}
+                alt={previewItem.images[previewPhotoIdx].label}
+                className="w-full max-h-[60vh] object-contain"
+              />
+              {previewItem.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setPreviewPhotoIdx((p) => (p - 1 + previewItem.images.length) % previewItem.images.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-sm p-2 rounded-xl hover:bg-white/20 transition-colors"
+                  >
+                    <Icon name="ChevronLeft" size={20} className="text-white" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewPhotoIdx((p) => (p + 1) % previewItem.images.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-sm p-2 rounded-xl hover:bg-white/20 transition-colors"
+                  >
+                    <Icon name="ChevronRight" size={20} className="text-white" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Вкладки фото */}
+            {previewItem.images.length > 1 && (
+              <div className="flex gap-2 px-6 pt-4">
+                {previewItem.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setPreviewPhotoIdx(idx)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all border ${
+                      previewPhotoIdx === idx
+                        ? "grad-bg text-white border-transparent"
+                        : "border-white/15 text-white/50 hover:text-white hover:border-white/30"
+                    }`}
+                  >
+                    {img.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Нижняя часть */}
+            <div className="px-6 py-5 flex items-center justify-between">
+              <span className="grad-text font-display font-bold text-2xl">{previewItem.price}</span>
+              <button
+                onClick={() => { setSelectedModel(previewItem.id); setActiveSection("tryon"); setPreviewItem(null); }}
+                className="grad-bg text-white font-display font-semibold px-6 py-2.5 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all hover:scale-[1.02] glow-purple"
+              >
+                <Icon name="Shirt" size={16} />
+                Примерить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FOOTER */}
       <footer className="relative z-10 border-t border-white/5 mt-16 py-8">

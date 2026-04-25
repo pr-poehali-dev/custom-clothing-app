@@ -8,6 +8,9 @@ export const CATALOG_ITEMS = [
     price: "12 400 ₽",
     sizes: ["XS", "S", "M", "L"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg", label: "Спереди" },
+    ],
     tag: "Хит",
     tagColor: "from-purple-500 to-pink-500",
   },
@@ -18,6 +21,9 @@ export const CATALOG_ITEMS = [
     price: "8 900 ₽",
     sizes: ["S", "M", "L", "XL"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg", label: "Спереди" },
+    ],
     tag: "Новинка",
     tagColor: "from-orange-500 to-pink-500",
   },
@@ -28,6 +34,9 @@ export const CATALOG_ITEMS = [
     price: "6 200 ₽",
     sizes: ["XS", "S", "M"],
     img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg", label: "Спереди" },
+    ],
     tag: "−20%",
     tagColor: "from-pink-500 to-orange-500",
   },
@@ -37,7 +46,12 @@ export const CATALOG_ITEMS = [
     category: "Повседневное",
     price: "14 900 ₽",
     sizes: ["XS", "S", "M", "L", "XL"],
-    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg",
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/972abfa5-dae1-4595-b676-918db4e8f2c4.jpg",
+    images: [
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/972abfa5-dae1-4595-b676-918db4e8f2c4.jpg", label: "Спереди" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/7e3d2775-3c45-4c88-9b9a-f0d7d29438c1.jpg", label: "Сзади" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg", label: "На модели" },
+    ],
     tag: "Новинка",
     tagColor: "from-amber-600 to-stone-500",
   },
