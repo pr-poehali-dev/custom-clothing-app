@@ -31,6 +31,16 @@ export const CATALOG_ITEMS = [
     tag: "−20%",
     tagColor: "from-pink-500 to-orange-500",
   },
+  {
+    id: 4,
+    name: "Жакет BRONNI-fitted",
+    category: "Повседневное",
+    price: "14 900 ₽",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg",
+    tag: "Новинка",
+    tagColor: "from-amber-600 to-stone-500",
+  },
 ];
 
 export const STEPS = [
