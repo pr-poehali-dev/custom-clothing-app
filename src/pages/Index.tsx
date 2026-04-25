@@ -8,11 +8,12 @@ const CATALOG_ITEMS = [
     category: "Вечернее",
     price: "12 400 ₽",
     sizes: ["XS", "S", "M", "L"],
-    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/ab0e3ee6-d05e-458b-a80a-a14129d7b1b8.jpg",
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg",
     images: [
-      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/ab0e3ee6-d05e-458b-a80a-a14129d7b1b8.jpg", label: "Спереди" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/aa40813b-c6c5-447f-b035-c668c1ac9013.jpg", label: "Спереди" },
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/5552b5d0-fc54-4794-9da7-8024306c2ca7.jpg", label: "Сзади" },
     ],
+    description: "Вечернее платье из струящегося шёлка с мягким блеском. Приталенный силуэт подчёркивает фигуру, нежная расцветка Aurora переливается в свете. Потайная молния сзади, подкладка из вискозы. Идеально для торжественных выходов.",
     tag: "Хит",
     tagColor: "from-purple-500 to-pink-500",
   },
@@ -22,11 +23,12 @@ const CATALOG_ITEMS = [
     category: "Повседневное",
     price: "8 900 ₽",
     sizes: ["S", "M", "L", "XL"],
-    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/7c93b456-03d0-42af-9f73-4185d455b99d.jpg",
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg",
     images: [
-      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/7c93b456-03d0-42af-9f73-4185d455b99d.jpg", label: "Спереди" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/710e29d3-14c0-4c00-af33-25bc81bea951.jpg", label: "Спереди" },
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/da7dddac-31c2-448e-85b3-264e68deaefa.jpg", label: "Сзади" },
     ],
+    description: "Структурированный жакет для городского ритма. Плотная костюмная ткань держит форму весь день. Прямой крой, накладные карманы, пуговицы на манжетах. Сочетается с брюками, юбкой и джинсами — универсальная основа гардероба.",
     tag: "Новинка",
     tagColor: "from-orange-500 to-pink-500",
   },
@@ -36,11 +38,12 @@ const CATALOG_ITEMS = [
     category: "Базовый",
     price: "6 200 ₽",
     sizes: ["XS", "S", "M"],
-    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/564a837a-4db3-4950-bc80-049e19e4c70c.jpg",
+    img: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg",
     images: [
-      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/564a837a-4db3-4950-bc80-049e19e4c70c.jpg", label: "Спереди" },
+      { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/a38b6035-f804-4c83-9797-b4ebbdd01734.jpg", label: "Спереди" },
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/590b9aed-65f9-4afc-af06-2093b200c11d.jpg", label: "Сзади" },
     ],
+    description: "Базовый комплект в духе капсульного гардероба. Лёгкий льняной верх и широкие брюки свободного кроя из хлопка. Нейтральная палитра позволяет сочетать с любыми акцентами. Состав: лён 60%, хлопок 40%.",
     tag: "−20%",
     tagColor: "from-pink-500 to-orange-500",
   },
@@ -56,6 +59,7 @@ const CATALOG_ITEMS = [
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/7e3d2775-3c45-4c88-9b9a-f0d7d29438c1.jpg", label: "Сзади" },
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/238e1ca4-2acb-44d5-b62e-0e19d4536b98.jpg", label: "На модели" },
     ],
+    description: "Авторский жакет из костюмной шерсти с выраженной талией и пышным подолом. Без воротника, застёжка на 5 тёмных пуговиц. Рельефные швы создают скульптурный силуэт. Состав: шерсть 80%, полиэстер 20%. Сухая чистка.",
     tag: "Новинка",
     tagColor: "from-amber-600 to-stone-500",
   },
@@ -71,6 +75,7 @@ const CATALOG_ITEMS = [
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/d328593d-bfdb-4e2f-b28a-6262b4df296d.jpg", label: "Сзади" },
       { url: "https://cdn.poehali.dev/projects/e58f668d-5825-4761-bbb4-0fcd148af2a0/files/0d43e105-22b7-4ea0-9283-182d2baea5ad.jpg", label: "На модели" },
     ],
+    description: "Футболка из мягкой искусственной замши глубокого чёрного цвета. По низу — декоративная кулиска со шнурком, позволяет регулировать длину и силуэт. Крой оверсайз, круглый вырез. Состав: полиэстер 95%, эластан 5%. Стирка при 30°.",
     tag: "Новинка",
     tagColor: "from-zinc-600 to-neutral-800",
   },
@@ -233,15 +238,19 @@ export default function Index() {
         {activeSection === "catalog" && (
           <div className="animate-fade-in-1">
             {/* Hero */}
-            <div className="relative rounded-3xl overflow-hidden mb-10 min-h-[280px] flex items-center grad-bg p-8 md:p-12">
+            <div className="relative rounded-3xl overflow-hidden mb-10 min-h-[320px] flex items-center grad-bg p-8 md:p-12">
               <div className="absolute inset-0 opacity-20"
                 style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.03) 40px, rgba(255,255,255,0.03) 80px)" }}
               />
               <div className="relative z-10 max-w-xl">
-                <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 mb-4 text-white/90 text-sm font-medium backdrop-blur-sm">
-                  <Icon name="Sparkles" size={14} />
-                  Виртуальная примерочная
+                <div className="mb-3">
+                  <span className="font-display text-xs font-semibold tracking-[0.4em] text-white/50 uppercase">Бренд</span>
+                  <div className="flex items-baseline gap-3 mt-1">
+                    <span className="font-display text-3xl md:text-4xl font-black tracking-widest text-white">BRONNI</span>
+                    <span className="font-display text-sm md:text-base font-light tracking-[0.25em] text-white/70 uppercase">must have</span>
+                  </div>
                 </div>
+                <div className="w-16 h-px bg-white/30 mb-5" />
                 <h1 className="font-display text-4xl md:text-6xl font-bold text-white leading-tight mb-4">
                   ПРИМЕРЬ<br />ДО ПОКУПКИ
                 </h1>
@@ -255,8 +264,13 @@ export default function Index() {
                   ПОПРОБОВАТЬ
                 </button>
               </div>
-              <div className="hidden md:block absolute right-8 bottom-0 w-56 h-56 animate-float opacity-80">
-                <img src={CATALOG_ITEMS[0].img} alt="" className="w-full h-full object-cover rounded-2xl" />
+              <div className="hidden md:flex absolute right-8 bottom-0 gap-3 items-end">
+                <div className="w-40 h-52 animate-float opacity-90">
+                  <img src={CATALOG_ITEMS[3].img} alt="" className="w-full h-full object-cover rounded-2xl shadow-2xl" />
+                </div>
+                <div className="w-32 h-40 animate-float opacity-70" style={{ animationDelay: "0.5s" }}>
+                  <img src={CATALOG_ITEMS[0].img} alt="" className="w-full h-full object-cover rounded-2xl shadow-2xl" />
+                </div>
               </div>
             </div>
 
@@ -822,6 +836,13 @@ export default function Index() {
                     {img.label}
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Описание */}
+            {previewItem.description && (
+              <div className="px-6 pt-4 pb-2">
+                <p className="text-white/55 text-sm leading-relaxed">{previewItem.description}</p>
               </div>
             )}
 
