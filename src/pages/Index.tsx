@@ -58,7 +58,41 @@ export default function Index() {
   const [waist, setWaist] = useState("");
   const [hips, setHips] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // fit sliders: отклонение от базовых мерок изделия (M = 88/68/96)
+  const [fitChest, setFitChest] = useState(88);
+  const [fitWaist, setFitWaist] = useState(68);
+  const [fitHips, setFitHips] = useState(96);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // BASE размеры изделия (соответствует размеру M)
+  const BASE = { chest: 88, waist: 68, hips: 96 };
+
+  const getFitLabel = (val: number, base: number) => {
+    const diff = val - base;
+    if (diff < -8) return { text: "Очень свободно", color: "text-blue-400" };
+    if (diff < -3) return { text: "Свободно", color: "text-cyan-400" };
+    if (diff <= 3) return { text: "По фигуре", color: "text-green-400" };
+    if (diff <= 8) return { text: "Плотно", color: "text-yellow-400" };
+    return { text: "Очень плотно", color: "text-red-400" };
+  };
+
+  const getOverallFit = () => {
+    const diffs = [fitChest - BASE.chest, fitWaist - BASE.waist, fitHips - BASE.hips];
+    const avg = diffs.reduce((a, b) => a + Math.abs(b), 0) / 3;
+    if (avg <= 2) return { text: "Идеальная посадка", color: "text-green-400", icon: "CheckCircle2" };
+    if (avg <= 5) return { text: "Хорошая посадка", color: "text-cyan-400", icon: "ThumbsUp" };
+    if (avg <= 9) return { text: "Требует подгонки", color: "text-yellow-400", icon: "AlertCircle" };
+    return { text: "Рекомендуем другой размер", color: "text-red-400", icon: "XCircle" };
+  };
+
+  // Визуальная деформация изделия по объёмам
+  const getFitTransform = () => {
+    const chestScale = 1 + (fitChest - BASE.chest) * 0.004;
+    const waistScale = 1 + (fitWaist - BASE.waist) * 0.003;
+    const hipsScale = 1 + (fitHips - BASE.hips) * 0.004;
+    const avgScale = (chestScale + waistScale + hipsScale) / 3;
+    return { scaleX: Math.min(Math.max(avgScale, 0.82), 1.22) };
+  };
 
   const navItems: { key: Section; label: string; icon: string }[] = [
     { key: "catalog", label: "Каталог", icon: "LayoutGrid" },
@@ -325,12 +359,22 @@ export default function Index() {
                         src={CATALOG_ITEMS.find(c => c.id === selectedModel)?.img}
                         alt=""
                         className="object-contain opacity-80 transition-all duration-500"
-                        style={{ height: `${Math.min(getScalePercent(), 120)}%`, maxHeight: "100%" }}
+                        style={{
+                          height: `${Math.min(getScalePercent(), 120)}%`,
+                          maxHeight: "100%",
+                          transform: `scaleX(${getFitTransform().scaleX})`,
+                          transition: "transform 0.4s ease",
+                        }}
                       />
                     </div>
                     <div className="absolute bottom-3 left-3 glass-card rounded-lg px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm">
                       <Icon name="Sparkles" size={10} className="inline mr-1 text-purple-400" />
                       Примерка: {CATALOG_ITEMS.find(c => c.id === selectedModel)?.name}
+                    </div>
+                    {/* Overall fit badge */}
+                    <div className="absolute top-3 right-3 glass-card rounded-lg px-3 py-1.5 text-xs backdrop-blur-sm flex items-center gap-1.5">
+                      <Icon name={getOverallFit().icon} size={12} className={getOverallFit().color} />
+                      <span className={getOverallFit().color}>{getOverallFit().text}</span>
                     </div>
                   </div>
                 ) : (
@@ -339,6 +383,86 @@ export default function Index() {
                     <p>Загрузи фото и выбери модель</p>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* ========== FIT BLOCK ========== */}
+            <div className="glass-card rounded-2xl p-6 mt-6 animate-fade-in-3">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-display text-xl font-semibold text-white flex items-center gap-2">
+                  <Icon name="SlidersHorizontal" size={20} className="text-orange-400" />
+                  Подгонка по объёмам
+                </h3>
+                <button
+                  onClick={() => { setFitChest(BASE.chest); setFitWaist(BASE.waist); setFitHips(BASE.hips); }}
+                  className="text-xs text-white/40 hover:text-white/70 transition-colors glass-card px-3 py-1.5 rounded-lg"
+                >
+                  Сбросить
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {[
+                  { label: "Обхват груди", val: fitChest, set: setFitChest, base: BASE.chest, min: 72, max: 116, icon: "Heart", color: "purple" },
+                  { label: "Обхват талии", val: fitWaist, set: setFitWaist, base: BASE.waist, min: 54, max: 96, icon: "CircleDashed", color: "pink" },
+                  { label: "Обхват бёдер", val: fitHips, set: setFitHips, base: BASE.hips, min: 80, max: 120, icon: "Maximize2", color: "orange" },
+                ].map((f) => {
+                  const fit = getFitLabel(f.val, f.base);
+                  const pct = ((f.val - f.min) / (f.max - f.min)) * 100;
+                  return (
+                    <div key={f.label}>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="flex items-center gap-1.5 text-white/60 text-sm">
+                          <Icon name={f.icon} size={13} className={`text-${f.color}-400`} />
+                          {f.label}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="font-display font-bold text-white text-sm">{f.val} см</span>
+                          <span className={`text-xs ${fit.color}`}>{fit.text}</span>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="range"
+                          min={f.min}
+                          max={f.max}
+                          value={f.val}
+                          onChange={(e) => f.set(Number(e.target.value))}
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, var(--neon-purple) 0%, var(--neon-pink) ${pct}%, rgba(255,255,255,0.1) ${pct}%, rgba(255,255,255,0.1) 100%)`,
+                          }}
+                        />
+                        {/* base marker */}
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white/30 rounded-full pointer-events-none"
+                          style={{ left: `calc(${((f.base - f.min) / (f.max - f.min)) * 100}% - 1px)` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-white/20 text-xs mt-1">
+                        <span>{f.min}</span>
+                        <span className="text-white/30">базовый {f.base}</span>
+                        <span>{f.max}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Summary row */}
+              <div className="mt-5 pt-4 border-t border-white/8 grid grid-cols-3 gap-3">
+                {[
+                  { label: "Грудь", diff: fitChest - BASE.chest },
+                  { label: "Талия", diff: fitWaist - BASE.waist },
+                  { label: "Бёдра", diff: fitHips - BASE.hips },
+                ].map((s) => (
+                  <div key={s.label} className="text-center glass-card rounded-xl py-2 px-3">
+                    <p className="text-white/40 text-xs mb-0.5">{s.label}</p>
+                    <p className={`font-display font-bold text-sm ${s.diff === 0 ? "text-green-400" : s.diff > 0 ? "text-yellow-400" : "text-cyan-400"}`}>
+                      {s.diff === 0 ? "= база" : s.diff > 0 ? `+${s.diff} см` : `${s.diff} см`}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
