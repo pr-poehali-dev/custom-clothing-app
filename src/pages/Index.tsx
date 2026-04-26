@@ -88,13 +88,28 @@ const STEPS = [
   { icon: "Sparkles", title: "Посмотри результат", desc: "Модель масштабируется под твой рост" },
 ];
 
-const ORDERS = [
-  { id: "#ORD-0421", item: "Платье «Аврора»", date: "18 апр 2026", status: "Доставляется", color: "text-purple-400" },
-  { id: "#ORD-0387", item: "Жакет «Урбан»", date: "2 апр 2026", status: "Получен", color: "text-green-400" },
-  { id: "#ORD-0301", item: "Образ «Минимал»", date: "15 мар 2026", status: "Получен", color: "text-green-400" },
+const AUTH_URL = "https://functions.poehali.dev/c8ab278d-ce6c-49c2-974a-524f4df55cef";
+const PRODUCTS_URL = "https://functions.poehali.dev/e39a5954-9cb1-4855-9285-70a368a64eb2";
+
+const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL"];
+const CATEGORIES = ["Вечернее", "Повседневное", "Базовый", "Верхняя одежда", "Аксессуары"];
+const TAG_COLORS = [
+  { label: "Фиолетовый", value: "from-purple-500 to-pink-500" },
+  { label: "Оранжевый", value: "from-orange-500 to-pink-500" },
+  { label: "Розовый", value: "from-pink-500 to-orange-500" },
+  { label: "Янтарный", value: "from-amber-600 to-stone-500" },
+  { label: "Тёмный", value: "from-zinc-600 to-neutral-800" },
+  { label: "Зелёный", value: "from-emerald-500 to-teal-500" },
 ];
 
 type Section = "catalog" | "tryon" | "measures" | "cabinet" | "process" | "contacts";
+
+type AuthUser = { id: number; name: string; email: string; is_admin: boolean };
+type ProductItem = {
+  id: number; name: string; category: string; price: number;
+  description: string; sizes: string[]; tag: string; tagColor: string;
+  images: { url: string; label: string }[];
+};
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState<Section>("catalog");
@@ -107,11 +122,136 @@ export default function Index() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<typeof CATALOG_ITEMS[0] | null>(null);
   const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0);
-  // fit sliders: отклонение от базовых мерок изделия (M = 88/68/96)
   const [fitChest, setFitChest] = useState(88);
   const [fitWaist, setFitWaist] = useState(68);
   const [fitHips, setFitHips] = useState(96);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // --- Auth ---
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authToken, setAuthToken] = useState<string>(() => localStorage.getItem("bronni_token") || "");
+  const [authTab, setAuthTab] = useState<"login" | "register">("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // --- Admin products ---
+  const [dbProducts, setDbProducts] = useState<ProductItem[]>([]);
+  const [adminTab, setAdminTab] = useState<"list" | "add">("list");
+  const [newProduct, setNewProduct] = useState({
+    name: "", category: CATEGORIES[0], price: "", description: "",
+    sizes: [] as string[], tag: "Новинка", tagColor: TAG_COLORS[0].value,
+  });
+  const [newImages, setNewImages] = useState<{ data: string; label: string }[]>([]);
+  const [productSaving, setProductSaving] = useState(false);
+  const [productError, setProductError] = useState("");
+  const adminImgRef = useRef<HTMLInputElement>(null);
+
+  const sessionHeaders = authToken ? { "X-Session-Id": authToken } : {};
+
+  const checkSession = async (token: string) => {
+    if (!token) return;
+    try {
+      const r = await fetch(`${AUTH_URL}/me`, { headers: { "X-Session-Id": token } });
+      if (r.ok) {
+        const d = await r.json();
+        setAuthUser(d.user);
+      } else {
+        localStorage.removeItem("bronni_token");
+        setAuthToken("");
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const loadAdminProducts = async () => {
+    try {
+      const r = await fetch(`${PRODUCTS_URL}/admin`, { headers: sessionHeaders });
+      if (r.ok) {
+        const d = await r.json();
+        setDbProducts(d.products);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  useState(() => {
+    if (authToken) checkSession(authToken);
+  });
+
+  const handleLogin = async () => {
+    setAuthError(""); setAuthLoading(true);
+    try {
+      const r = await fetch(`${AUTH_URL}/login`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: authEmail, password: authPassword }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setAuthError(d.error); return; }
+      setAuthUser(d.user);
+      setAuthToken(d.token);
+      localStorage.setItem("bronni_token", d.token);
+      if (d.user.is_admin) loadAdminProducts();
+    } catch { setAuthError("Ошибка соединения"); }
+    finally { setAuthLoading(false); }
+  };
+
+  const handleRegister = async () => {
+    setAuthError(""); setAuthLoading(true);
+    try {
+      const r = await fetch(`${AUTH_URL}/register`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: authEmail, password: authPassword, name: authName }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setAuthError(d.error); return; }
+      setAuthUser(d.user);
+      setAuthToken(d.token);
+      localStorage.setItem("bronni_token", d.token);
+    } catch { setAuthError("Ошибка соединения"); }
+    finally { setAuthLoading(false); }
+  };
+
+  const handleLogout = () => {
+    setAuthUser(null); setAuthToken("");
+    localStorage.removeItem("bronni_token");
+  };
+
+  const handleAdminImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const label = newImages.length === 0 ? "Спереди" : newImages.length === 1 ? "Сзади" : "На модели";
+      setNewImages((prev) => [...prev, { data: ev.target!.result as string, label }]);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleSaveProduct = async () => {
+    if (!newProduct.name || !newProduct.price) { setProductError("Заполните название и цену"); return; }
+    setProductSaving(true); setProductError("");
+    try {
+      const r = await fetch(PRODUCTS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": authToken },
+        body: JSON.stringify({ ...newProduct, price: parseInt(newProduct.price), images: newImages }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setProductError(d.error); return; }
+      setNewProduct({ name: "", category: CATEGORIES[0], price: "", description: "", sizes: [], tag: "Новинка", tagColor: TAG_COLORS[0].value });
+      setNewImages([]);
+      setAdminTab("list");
+      loadAdminProducts();
+    } catch { setProductError("Ошибка соединения"); }
+    finally { setProductSaving(false); }
+  };
+
+  const handleDeleteProduct = async (id: number) => {
+    await fetch(`${PRODUCTS_URL}/${id}`, { method: "DELETE", headers: sessionHeaders });
+    loadAdminProducts();
+  };
 
   // BASE размеры изделия (соответствует размеру M)
   const BASE = { chest: 88, waist: 68, hips: 96 };
@@ -620,51 +760,309 @@ export default function Index() {
           <div className="animate-fade-in-1">
             <div className="mb-8">
               <h2 className="font-display text-4xl font-bold grad-text mb-2">ЛИЧНЫЙ КАБИНЕТ</h2>
-              <p className="text-white/50">Твои заказы и история покупок</p>
+              <p className="text-white/50">Управление брендом BRONNI</p>
             </div>
 
-            {/* Profile card */}
-            <div className="glass-card rounded-2xl p-6 mb-6 flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl grad-bg flex items-center justify-center flex-shrink-0 animate-pulse-glow">
-                <Icon name="User" size={28} className="text-white" />
-              </div>
-              <div>
-                <p className="font-display text-xl font-bold text-white">Анна Соколова</p>
-                <p className="text-white/50 text-sm">anna@example.com</p>
-                <div className="flex gap-4 mt-2">
-                  <span className="text-xs text-purple-400">3 заказа</span>
-                  <span className="text-xs text-white/30">|</span>
-                  <span className="text-xs text-pink-400">Размер M</span>
-                  <span className="text-xs text-white/30">|</span>
-                  <span className="text-xs text-orange-400">Рост 167 см</span>
-                </div>
-              </div>
-              <button className="ml-auto glass-card px-4 py-2 rounded-xl text-sm text-white/60 hover:text-white transition-colors">
-                Редактировать
-              </button>
-            </div>
+            {/* NOT LOGGED IN */}
+            {!authUser && (
+              <div className="max-w-md mx-auto">
+                <div className="glass-card rounded-3xl p-8">
+                  {/* Tabs */}
+                  <div className="flex gap-1 bg-white/5 rounded-2xl p-1 mb-7">
+                    {(["login", "register"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => { setAuthTab(t); setAuthError(""); }}
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${authTab === t ? "grad-bg text-white" : "text-white/40 hover:text-white"}`}
+                      >
+                        {t === "login" ? "Войти" : "Регистрация"}
+                      </button>
+                    ))}
+                  </div>
 
-            {/* Orders */}
-            <h3 className="font-display text-xl font-semibold text-white mb-4">История заказов</h3>
-            <div className="space-y-3">
-              {ORDERS.map((order, i) => (
-                <div key={order.id} className={`glass-card rounded-2xl p-5 flex items-center justify-between animate-fade-in-${i + 2} hover-lift`}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                      <Icon name="Package" size={18} className="text-purple-400" />
+                  <div className="space-y-4">
+                    {authTab === "register" && (
+                      <div>
+                        <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Имя</label>
+                        <input
+                          value={authName} onChange={(e) => setAuthName(e.target.value)}
+                          placeholder="Ваше имя"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Email</label>
+                      <input
+                        type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                      />
                     </div>
                     <div>
-                      <p className="text-white font-medium">{order.item}</p>
-                      <p className="text-white/40 text-sm">{order.id} · {order.date}</p>
+                      <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Пароль</label>
+                      <input
+                        type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)}
+                        placeholder="••••••••"
+                        onKeyDown={(e) => e.key === "Enter" && (authTab === "login" ? handleLogin() : handleRegister())}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                      />
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-medium ${order.color}`}>{order.status}</span>
-                    <Icon name="ChevronRight" size={16} className="text-white/30" />
+
+                    {authError && (
+                      <p className="text-red-400 text-sm bg-red-500/10 rounded-xl px-4 py-2.5">{authError}</p>
+                    )}
+
+                    <button
+                      onClick={authTab === "login" ? handleLogin : handleRegister}
+                      disabled={authLoading}
+                      className="w-full grad-bg text-white font-display font-semibold py-3.5 rounded-2xl hover:opacity-90 transition-all disabled:opacity-50 glow-purple mt-2"
+                    >
+                      {authLoading ? "..." : authTab === "login" ? "ВОЙТИ" : "ЗАРЕГИСТРИРОВАТЬСЯ"}
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* LOGGED IN */}
+            {authUser && (
+              <div>
+                {/* Profile card */}
+                <div className="glass-card rounded-2xl p-5 mb-6 flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl grad-bg flex items-center justify-center flex-shrink-0 animate-pulse-glow">
+                    <Icon name="User" size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-display text-lg font-bold text-white">{authUser.name}</p>
+                    <p className="text-white/40 text-sm">{authUser.email}</p>
+                    {authUser.is_admin && (
+                      <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full mt-1 inline-block">Администратор</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="ml-auto glass-card px-4 py-2 rounded-xl text-sm text-white/50 hover:text-white transition-colors flex items-center gap-1.5"
+                  >
+                    <Icon name="LogOut" size={14} />
+                    Выйти
+                  </button>
+                </div>
+
+                {/* ADMIN PANEL */}
+                {authUser.is_admin && (
+                  <div>
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="font-display text-xl font-semibold text-white">Управление каталогом</h3>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => { setAdminTab("list"); loadAdminProducts(); }}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${adminTab === "list" ? "grad-bg text-white" : "glass-card text-white/50 hover:text-white"}`}
+                        >
+                          <Icon name="List" size={14} className="inline mr-1.5" />
+                          Товары
+                        </button>
+                        <button
+                          onClick={() => setAdminTab("add")}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${adminTab === "add" ? "grad-bg text-white" : "glass-card text-white/50 hover:text-white"}`}
+                        >
+                          <Icon name="Plus" size={14} className="inline mr-1.5" />
+                          Добавить
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* LIST */}
+                    {adminTab === "list" && (
+                      <div className="space-y-3">
+                        {dbProducts.length === 0 && (
+                          <div className="glass-card rounded-2xl p-10 text-center text-white/30">
+                            <Icon name="Package" size={32} className="mx-auto mb-3 opacity-30" />
+                            <p>Товаров пока нет. Добавьте первый!</p>
+                          </div>
+                        )}
+                        {dbProducts.map((p) => (
+                          <div key={p.id} className="glass-card rounded-2xl p-4 flex items-center gap-4 hover-lift">
+                            {p.images?.[0] && (
+                              <img src={p.images[0].url} alt={p.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                            )}
+                            {!p.images?.[0] && (
+                              <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                                <Icon name="Shirt" size={20} className="text-white/30" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium truncate">{p.name}</p>
+                              <p className="text-white/40 text-sm">{p.category} · {p.price.toLocaleString("ru")} ₽</p>
+                            </div>
+                            <div className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${p.tagColor} text-white`}>{p.tag}</div>
+                            <button
+                              onClick={() => handleDeleteProduct(p.id)}
+                              className="p-2 rounded-xl hover:bg-red-500/20 transition-colors text-white/30 hover:text-red-400"
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ADD FORM */}
+                    {adminTab === "add" && (
+                      <div className="glass-card rounded-3xl p-6 space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Название *</label>
+                            <input
+                              value={newProduct.name}
+                              onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))}
+                              placeholder="Платье «Аврора»"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Цена (₽) *</label>
+                            <input
+                              type="number" value={newProduct.price}
+                              onChange={(e) => setNewProduct((p) => ({ ...p, price: e.target.value }))}
+                              placeholder="12400"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Категория</label>
+                            <select
+                              value={newProduct.category}
+                              onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
+                            >
+                              {CATEGORIES.map((c) => <option key={c} value={c} className="bg-zinc-900">{c}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Тег (бейдж)</label>
+                            <input
+                              value={newProduct.tag}
+                              onChange={(e) => setNewProduct((p) => ({ ...p, tag: e.target.value }))}
+                              placeholder="Новинка / Хит / −20%"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-white/50 text-xs uppercase tracking-widest mb-2 block">Цвет бейджа</label>
+                          <div className="flex gap-2 flex-wrap">
+                            {TAG_COLORS.map((tc) => (
+                              <button
+                                key={tc.value}
+                                onClick={() => setNewProduct((p) => ({ ...p, tagColor: tc.value }))}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r ${tc.value} text-white transition-all ${newProduct.tagColor === tc.value ? "ring-2 ring-white/50 scale-105" : "opacity-60 hover:opacity-100"}`}
+                              >
+                                {tc.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-white/50 text-xs uppercase tracking-widest mb-2 block">Размеры</label>
+                          <div className="flex gap-2 flex-wrap">
+                            {SIZES_OPTIONS.map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => setNewProduct((p) => ({
+                                  ...p,
+                                  sizes: p.sizes.includes(s) ? p.sizes.filter((x) => x !== s) : [...p.sizes, s],
+                                }))}
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${newProduct.sizes.includes(s) ? "grad-bg text-white border-transparent" : "border-white/15 text-white/50 hover:text-white"}`}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-white/50 text-xs uppercase tracking-widest mb-1.5 block">Описание</label>
+                          <textarea
+                            value={newProduct.description}
+                            onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))}
+                            placeholder="Материал, крой, детали пошива..."
+                            rows={3}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                          />
+                        </div>
+
+                        {/* Images */}
+                        <div>
+                          <label className="text-white/50 text-xs uppercase tracking-widest mb-2 block">Фотографии</label>
+                          <div className="flex gap-3 flex-wrap">
+                            {newImages.map((img, idx) => (
+                              <div key={idx} className="relative group">
+                                <img src={img.data} alt={img.label} className="w-20 h-20 object-cover rounded-xl" />
+                                <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => setNewImages((imgs) => imgs.filter((_, i) => i !== idx))}
+                                    className="text-white"
+                                  >
+                                    <Icon name="X" size={16} />
+                                  </button>
+                                </div>
+                                <p className="text-white/40 text-xs text-center mt-1">{img.label}</p>
+                              </div>
+                            ))}
+                            {newImages.length < 3 && (
+                              <button
+                                onClick={() => adminImgRef.current?.click()}
+                                className="w-20 h-20 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center text-white/30 hover:text-white hover:border-white/40 transition-colors"
+                              >
+                                <Icon name="Plus" size={20} />
+                                <span className="text-xs mt-1">Фото</span>
+                              </button>
+                            )}
+                          </div>
+                          <input ref={adminImgRef} type="file" accept="image/*" className="hidden" onChange={handleAdminImagePick} />
+                          <p className="text-white/30 text-xs mt-2">До 3 фото. Первое станет главным.</p>
+                        </div>
+
+                        {productError && (
+                          <p className="text-red-400 text-sm bg-red-500/10 rounded-xl px-4 py-2.5">{productError}</p>
+                        )}
+
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            onClick={() => setAdminTab("list")}
+                            className="flex-1 glass-card py-3 rounded-2xl text-white/50 hover:text-white transition-colors text-sm font-medium"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            onClick={handleSaveProduct}
+                            disabled={productSaving}
+                            className="flex-2 grad-bg text-white font-display font-semibold px-8 py-3 rounded-2xl hover:opacity-90 transition-all disabled:opacity-50 glow-purple flex items-center gap-2"
+                          >
+                            <Icon name="Upload" size={16} />
+                            {productSaving ? "Сохраняю..." : "Опубликовать товар"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* NOT ADMIN */}
+                {!authUser.is_admin && (
+                  <div className="glass-card rounded-2xl p-10 text-center text-white/40">
+                    <Icon name="Lock" size={32} className="mx-auto mb-3 opacity-30" />
+                    <p>Раздел управления каталогом доступен только администраторам.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

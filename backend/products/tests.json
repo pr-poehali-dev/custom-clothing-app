@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Get public products list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create product without token",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Test", "category": "Test", "price": 1000},
+      "expectedStatus": 403,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
